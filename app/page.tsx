@@ -104,28 +104,32 @@ export default function Home() {
             <div className="mt-20 grid grid-cols-4 gap-8">
 
               <TemplateCard
-                icon="▣"
-                title="Company Profile"
-                description="Buat profil perusahaan profesional untuk klien Anda."
-              />
+  templateId="company_profile"
+  icon="▣"
+  title="Company Profile"
+  description="Buat profil perusahaan profesional untuk klien Anda."
+/>
 
-              <TemplateCard
-                icon="▤"
-                title="Penawaran Produk"
-                description="Presentasi katalog dan detail produk yang memukau."
-              />
+<TemplateCard
+  templateId="penawaran_produk"
+  icon="▤"
+  title="Penawaran Produk"
+  description="Presentasi katalog dan detail produk yang memukau."
+/>
 
-              <TemplateCard
-                icon="🤝"
-                title="Proposal Kerjasama"
-                description="Ajukan kerjasama bisnis dengan struktur meyakinkan."
-              />
+<TemplateCard
+  templateId="proposal_kerjasama"
+  icon="🤝"
+  title="Proposal Kerja Sama"
+  description="Ajukan kerja sama bisnis dengan struktur meyakinkan."
+/>
 
-              <TemplateCard
-                icon="▥"
-                title="Laporan Ringkas"
-                description="Sampaikan metrik dan progres dengan visual jelas."
-              />
+<TemplateCard
+  templateId="laporan_ringkas"
+  icon="▥"
+  title="Laporan Ringkas"
+  description="Sampaikan metrik dan progres dengan visual yang jelas."
+/>
 
             </div>
 
@@ -142,14 +146,18 @@ export default function Home() {
 /* Template Card */
 
 function TemplateCard({
+  templateId,
   icon,
   title,
   description,
 }: {
+  templateId: string;
   icon: string;
   title: string;
   description: string;
 }) {
+  const router = useRouter();
+
   return (
     <div className="min-h-[400px] rounded-[28px] bg-white p-10 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
 
@@ -165,8 +173,12 @@ function TemplateCard({
         {description}
       </p>
 
-      <button className="mt-10 text-lg font-semibold text-[#246bff]">
-        Mulai →
+      <button
+        type="button"
+        onClick={() => router.push(`/create?template=${templateId}`)}
+        className="mt-10 text-lg font-semibold text-[#246bff]"
+      >
+        Gunakan Template →
       </button>
 
     </div>
