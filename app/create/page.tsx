@@ -1,33 +1,43 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function CreatePresentation() {
-const router = useRouter();
-    const searchParams = useSearchParams();
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#f4f7fc]" />}>
+      <CreatePresentationContent />
+    </Suspense>
+  );
+}
+
+function CreatePresentationContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const template = searchParams.get("template") || "company_profile";
- 
+
   const [businessName, setBusinessName] = useState("");
-const [description, setDescription] = useState("");
-const [targetAudience, setTargetAudience] = useState("");
-const [rawMaterial, setRawMaterial] = useState("");
+  const [description, setDescription] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [rawMaterial, setRawMaterial] = useState("");
 
-const [price, setPrice] = useState("");
-const [moq, setMoq] = useState("");
-const [resellerMargin, setResellerMargin] = useState("");
-const [partnershipGoal, setPartnershipGoal] = useState("");
-const [period, setPeriod] = useState("");
-const [keyPoints, setKeyPoints] = useState("");
+  const [price, setPrice] = useState("");
+  const [moq, setMoq] = useState("");
+  const [resellerMargin, setResellerMargin] = useState("");
+  const [partnershipGoal, setPartnershipGoal] = useState("");
+  const [period, setPeriod] = useState("");
+  const [keyPoints, setKeyPoints] = useState("");
 
-const templateNames: Record<string, string> = {
-  company_profile: "Company Profile",
-  penawaran_produk: "Penawaran Produk",
-  proposal_kerjasama: "Proposal Kerja Sama",
-  laporan_ringkas: "Laporan Ringkas",
-};
+  const templateNames: Record<string, string> = {
+    company_profile: "Company Profile",
+    penawaran_produk: "Penawaran Produk",
+    proposal_kerjasama: "Proposal Kerja Sama",
+    laporan_ringkas: "Laporan Ringkas",
+  };
 
-const templateName = templateNames[template] || "Company Profile";
+  const templateName = templateNames[template] || "Company Profile";
 
   return (
     <main className="min-h-screen bg-[#f4f7fc] p-8 text-[#17213a]">
@@ -35,6 +45,16 @@ const templateName = templateNames[template] || "Company Profile";
 
         {/* Header */}
         <div className="mb-10">
+          {/* Back Button */}
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="mb-8 flex items-center gap-2 text-base font-medium text-[#647a9e] transition hover:text-[#6d4aff]"
+          >
+            <span className="text-xl">←</span>
+            Kembali
+          </button>
+
           <p className="text-sm font-semibold text-[#6d4aff]">
             LANGKAH 2 DARI 7
           </p>
@@ -108,23 +128,23 @@ const templateName = templateNames[template] || "Company Profile";
             />
           </div>
 
+          {/* Key Points */}
+          <div className="mb-6">
+            <label className="mb-2 block font-semibold">
+              Poin Penting Presentasi
+            </label>
+
+            <textarea
+              value={keyPoints}
+              onChange={(e) => setKeyPoints(e.target.value)}
+              placeholder="Contoh: Keunggulan produk, harga kompetitif, pengalaman bisnis, dan target pengembangan..."
+              rows={4}
+              className="w-full resize-none rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
+            />
+          </div>
+
           {/* Raw Material */}
-{/* Key Points */}
-<div className="mb-6">
-  <label className="mb-2 block font-semibold">
-    Poin Penting Presentasi
-  </label>
-
-  <textarea
-    value={keyPoints}
-    onChange={(e) => setKeyPoints(e.target.value)}
-    placeholder="Contoh: Keunggulan produk, harga kompetitif, pengalaman bisnis, dan target pengembangan..."
-    rows={4}
-    className="w-full resize-none rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
-  />
-</div>
-
-          <div>
+          <div className="mb-6">
             <label className="mb-2 block font-semibold">
               Tempel Catatan/Brosur Bebas
             </label>
@@ -143,100 +163,101 @@ const templateName = templateNames[template] || "Company Profile";
             </p>
           </div>
 
-          {/* Additional fields for Product Offer */}
-{template === "penawaran_produk" && (
-  <div className="mb-6 space-y-6">
+          {/* Additional Fields for Product Offer */}
+          {template === "penawaran_produk" && (
+            <div className="mb-6 space-y-6">
 
-    {/* Price */}
-    <div>
-      <label className="mb-2 block font-semibold">
-        Harga Produk
-      </label>
+              {/* Price */}
+              <div>
+                <label className="mb-2 block font-semibold">
+                  Harga Produk
+                </label>
 
-      <input
-        type="text"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        placeholder="Contoh: Rp50.000"
-        className="w-full rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
-      />
-    </div>
+                <input
+                  type="text"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="Contoh: Rp50.000"
+                  className="w-full rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
+                />
+              </div>
 
-    {/* MOQ */}
-    <div>
-      <label className="mb-2 block font-semibold">
-        Minimum Order (MOQ)
-      </label>
+              {/* MOQ */}
+              <div>
+                <label className="mb-2 block font-semibold">
+                  Minimum Order (MOQ)
+                </label>
 
-      <input
-        type="text"
-        value={moq}
-        onChange={(e) => setMoq(e.target.value)}
-        placeholder="Contoh: Minimal 10 pcs"
-        className="w-full rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
-      />
-    </div>
+                <input
+                  type="text"
+                  value={moq}
+                  onChange={(e) => setMoq(e.target.value)}
+                  placeholder="Contoh: Minimal 10 pcs"
+                  className="w-full rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
+                />
+              </div>
 
-    {/* Reseller Margin */}
-    <div>
-      <label className="mb-2 block font-semibold">
-        Margin Reseller
-      </label>
+              {/* Reseller Margin */}
+              <div>
+                <label className="mb-2 block font-semibold">
+                  Margin Reseller
+                </label>
 
-      <input
-        type="text"
-        value={resellerMargin}
-        onChange={(e) => setResellerMargin(e.target.value)}
-        placeholder="Contoh: 20%"
-        className="w-full rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
-      />
-    </div>
+                <input
+                  type="text"
+                  value={resellerMargin}
+                  onChange={(e) => setResellerMargin(e.target.value)}
+                  placeholder="Contoh: 20%"
+                  className="w-full rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
+                />
+              </div>
 
-  </div>
-)}
+            </div>
+          )}
 
-{/* Additional fields for Partnership Proposal */}
-{template === "proposal_kerjasama" && (
-  <div className="mb-6">
-    <label className="mb-2 block font-semibold">
-      Tujuan Kerja Sama
-    </label>
+          {/* Additional Fields for Partnership Proposal */}
+          {template === "proposal_kerjasama" && (
+            <div className="mb-6">
+              <label className="mb-2 block font-semibold">
+                Tujuan Kerja Sama
+              </label>
 
-    <textarea
-      value={partnershipGoal}
-      onChange={(e) => setPartnershipGoal(e.target.value)}
-      placeholder="Contoh: Mencari mitra distribusi untuk memperluas pasar..."
-      rows={4}
-      className="w-full resize-none rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
-    />
-  </div>
-)}
+              <textarea
+                value={partnershipGoal}
+                onChange={(e) => setPartnershipGoal(e.target.value)}
+                placeholder="Contoh: Mencari mitra distribusi untuk memperluas pasar..."
+                rows={4}
+                className="w-full resize-none rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
+              />
+            </div>
+          )}
 
-{/* Additional fields for Summary Report */}
-{template === "laporan_ringkas" && (
-  <div className="mb-6">
-    <label className="mb-2 block font-semibold">
-      Periode Laporan
-    </label>
+          {/* Additional Fields for Summary Report */}
+          {template === "laporan_ringkas" && (
+            <div className="mb-6">
+              <label className="mb-2 block font-semibold">
+                Periode Laporan
+              </label>
 
-    <input
-      type="text"
-      value={period}
-      onChange={(e) => setPeriod(e.target.value)}
-      placeholder="Contoh: Januari - Juni 2026"
-      className="w-full rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
-    />
-  </div>
-)}
+              <input
+                type="text"
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                placeholder="Contoh: Januari - Juni 2026"
+                className="w-full rounded-xl border border-[#dce3ef] px-4 py-3 outline-none focus:border-[#6d4aff]"
+              />
+            </div>
+          )}
 
           {/* Button */}
           <div className="mt-8 flex justify-end">
             <button
-  onClick={() => router.push("/create/brand-kit")}
-  className="rounded-xl bg-gradient-to-r from-[#8b4dff] to-[#287cff] px-8 py-4 font-semibold text-white shadow-md transition hover:opacity-90"
->
-  Lanjut ke Brand Kit →
-</button>
+              type="button"
+              onClick={() => router.push("/create/brand-kit")}
+              className="rounded-xl bg-gradient-to-r from-[#8b4dff] to-[#287cff] px-8 py-4 font-semibold text-white shadow-md transition hover:opacity-90"
+            >
+              Lanjut ke Brand Kit →
+            </button>
           </div>
 
         </div>
