@@ -1,60 +1,112 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const templates = [
-  {
-    id: "company_profile",
-    title: "Company Profile",
-    description:
-      "Perkenalkan profil usaha, visi misi, dan keunggulan kepada calon mitra atau investor.",
-    icon: "▣",
-    popular: true,
-  },
-  {
-    id: "penawaran_produk",
-    title: "Penawaran Produk & Jasa",
-    description:
-      "Tampilkan katalog produk, rincian harga grosir, MOQ, dan skema margin keuntungan reseller.",
-    icon: "◇",
-    popular: false,
-  },
-  {
-    id: "proposal_kerjasama",
-    title: "Proposal Kerja Sama",
-    description:
-      "Ajukan kolaborasi bisnis, pembagian bagi hasil, atau sewa tempat secara terstruktur.",
-    icon: "🤝",
-    popular: false,
-  },
-  {
-    id: "laporan_ringkas",
-    title: "Laporan Ringkas Usaha",
-    description:
-      "Sajikan evaluasi penjualan bulanan, performa operasional, dan rencana tindak lanjut.",
-    icon: "▥",
-    popular: false,
-  },
-  {
-    id: "presentasi_kosong",
-    title: "Presentasi Kosong",
-    description:
-      "Mulai presentasi Anda dari kanvas putih kosong tanpa kerangka struktur bawaan.",
-    icon: "▤",
-    popular: false,
-  },
-];
+// Metadata UI-only yang tidak dikirim backend (icon, badge populer)
+type Template = {
+  id: string;
+  label: string;
+  description: string;
+  icon?: string;
+  popular?: boolean;
+};
+
+type TemplatesResponse = {
+  success: boolean;
+  data?: Template[];
+  error?: { message?: string };
+};
+
+const templateMeta: Record<string, { icon: string; popular: boolean }> = {
+  company_profile: { icon: "▣", popular: true },
+  penawaran_produk: { icon: "◇", popular: false },
+  proposal_kerjasama: { icon: "🤝", popular: false },
+  laporan_ringkas: { icon: "▥", popular: false },
+};
 
 export default function TemplatePage() {
   const router = useRouter();
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/templates`
+        );
+        const json: TemplatesResponse = await res.json();
+
+        if (!json.success || !json.data) {
+          throw new Error(json.error?.message || "Gagal memuat template");
+        }
+
+        const merged = json.data.map((tpl) => ({
+          ...tpl,
+          icon: templateMeta[tpl.id]?.icon ?? "▤",
+          popular: templateMeta[tpl.id]?.popular ?? false,
+        }));
+
+        setTemplates(merged);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Terjadi kesalahan saat memuat template"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
 
   const handleContinue = () => {
     if (!selectedTemplate) return;
 
+    const selected = templates.find((t) => t.id === selectedTemplate);
+
+    if (!selected) return;
+
+    // Simpan requiredFields untuk dipakai render form dinamis di halaman /create
+    sessionStorage.setItem(
+      "pitchku_selected_template",
+      JSON.stringify(selected)
+    );
+
     router.push(`/create?template=${selectedTemplate}`);
   };
+
+  if (isLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#eef1ff] via-[#f8f9ff] to-[#f8f1ff]">
+        <p className="text-base font-medium text-[#7185a4]">
+          Memuat template...
+        </p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#eef1ff] via-[#f8f9ff] to-[#f8f1ff]">
+        <div className="text-center">
+          <p className="text-base font-medium text-red-600">{error}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-xl border border-[#dce3ef] bg-white px-6 py-3 font-semibold text-[#40516d] shadow-sm hover:bg-[#f8f9fc]"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#eef1ff] via-[#f8f9ff] to-[#f8f1ff] px-5 py-10 text-[#17213a] sm:px-8">
@@ -103,7 +155,7 @@ export default function TemplatePage() {
                 {/* Content */}
                 <div className="mt-7">
                   <h2 className="text-xl font-bold text-[#17213a] sm:text-2xl">
-                    {template.title}
+                    {template.label}
                   </h2>
 
                   <p className="mt-3 max-w-xl text-base leading-7 text-[#7185a4]">
