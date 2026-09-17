@@ -1,112 +1,74 @@
+// app/create/template/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useRequireAuth } from "@/lib/useRequireAuth";
+import { useWizardStore } from "@/store/useWizardStore";
+import type { TemplateType } from "@/lib/types";
 
-// Metadata UI-only yang tidak dikirim backend (icon, badge populer)
-type Template = {
-  id: string;
-  label: string;
+const templates: {
+  id: TemplateType;
+  title: string;
   description: string;
-  icon?: string;
-  popular?: boolean;
-};
+  icon: string;
+  popular: boolean;
+}[] = [
+  {
+    id: "company_profile",
+    title: "Company Profile",
+    description:
+      "Perkenalkan profil usaha, visi misi, dan keunggulan kepada calon mitra atau investor.",
+    icon: "▣",
+    popular: true,
+  },
+  {
+    id: "penawaran_produk",
+    title: "Penawaran Produk & Jasa",
+    description:
+      "Tampilkan katalog produk, rincian harga grosir, MOQ, dan skema margin keuntungan reseller.",
+    icon: "◇",
+    popular: false,
+  },
+  {
+    id: "proposal_kerjasama",
+    title: "Proposal Kerja Sama",
+    description:
+      "Ajukan kolaborasi bisnis, pembagian bagi hasil, atau sewa tempat secara terstruktur.",
+    icon: "🤝",
+    popular: false,
+  },
+  {
+    id: "laporan_ringkas",
+    title: "Laporan Ringkas Usaha",
+    description:
+      "Sajikan evaluasi penjualan bulanan, performa operasional, dan rencana tindak lanjut.",
+    icon: "▥",
+    popular: false,
+  },
+];
 
-type TemplatesResponse = {
-  success: boolean;
-  data?: Template[];
-  error?: { message?: string };
-};
-
-const templateMeta: Record<string, { icon: string; popular: boolean }> = {
-  company_profile: { icon: "▣", popular: true },
-  penawaran_produk: { icon: "◇", popular: false },
-  proposal_kerjasama: { icon: "🤝", popular: false },
-  laporan_ringkas: { icon: "▥", popular: false },
-};
+// NOTE: "Presentasi Kosong" (kanvas kosong tanpa outline AI) dihapus dari
+// daftar karena backend (TemplateTypeSchema) hanya menerima 4 nilai:
+// company_profile | penawaran_produk | proposal_kerjasama | laporan_ringkas.
+// Kalau Anda tetap ingin opsi "mulai dari kosong", itu perlu ditambahkan
+// dulu di backend (schema + prompt AI) sebelum saya tambahkan lagi di sini.
 
 export default function TemplatePage() {
   const router = useRouter();
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useRequireAuth();
+  const setTemplateType = useWizardStore((state) => state.setTemplateType);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType | "">(
+    "",
+  );
 
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/templates`
-        );
-        const json: TemplatesResponse = await res.json();
-
-        if (!json.success || !json.data) {
-          throw new Error(json.error?.message || "Gagal memuat template");
-        }
-
-        const merged = json.data.map((tpl) => ({
-          ...tpl,
-          icon: templateMeta[tpl.id]?.icon ?? "▤",
-          popular: templateMeta[tpl.id]?.popular ?? false,
-        }));
-
-        setTemplates(merged);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Terjadi kesalahan saat memuat template"
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTemplates();
-  }, []);
+  if (!isAuthenticated) return null;
 
   const handleContinue = () => {
     if (!selectedTemplate) return;
-
-    const selected = templates.find((t) => t.id === selectedTemplate);
-
-    if (!selected) return;
-
-    // Simpan requiredFields untuk dipakai render form dinamis di halaman /create
-    sessionStorage.setItem(
-      "pitchku_selected_template",
-      JSON.stringify(selected)
-    );
-
+    setTemplateType(selectedTemplate);
     router.push(`/create?template=${selectedTemplate}`);
   };
-
-  if (isLoading) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#eef1ff] via-[#f8f9ff] to-[#f8f1ff]">
-        <p className="text-base font-medium text-[#7185a4]">
-          Memuat template...
-        </p>
-      </main>
-    );
-  }
-
-  if (error) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#eef1ff] via-[#f8f9ff] to-[#f8f1ff]">
-        <div className="text-center">
-          <p className="text-base font-medium text-red-600">{error}</p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="mt-4 rounded-xl border border-[#dce3ef] bg-white px-6 py-3 font-semibold text-[#40516d] shadow-sm hover:bg-[#f8f9fc]"
-          >
-            Coba Lagi
-          </button>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#eef1ff] via-[#f8f9ff] to-[#f8f1ff] px-5 py-10 text-[#17213a] sm:px-8">
@@ -140,22 +102,19 @@ export default function TemplatePage() {
                     : "border-[#e1e6f0] hover:-translate-y-1 hover:border-[#cfc2ff] hover:shadow-md"
                 }`}
               >
-                {/* Popular Badge */}
                 {template.popular && (
                   <span className="absolute right-7 top-7 rounded-full bg-[#e8f0f8] px-4 py-2 text-sm font-semibold text-[#15558c]">
                     Paling Populer
                   </span>
                 )}
 
-                {/* Icon */}
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[#edf0f6] bg-[#f7f9fd] text-3xl text-[#07518e]">
                   {template.icon}
                 </div>
 
-                {/* Content */}
                 <div className="mt-7">
                   <h2 className="text-xl font-bold text-[#17213a] sm:text-2xl">
-                    {template.label}
+                    {template.title}
                   </h2>
 
                   <p className="mt-3 max-w-xl text-base leading-7 text-[#7185a4]">
@@ -163,7 +122,6 @@ export default function TemplatePage() {
                   </p>
                 </div>
 
-                {/* Card Footer */}
                 <div className="mt-auto pt-7">
                   <div className="mb-6 h-px bg-[#edf0f6]" />
 
